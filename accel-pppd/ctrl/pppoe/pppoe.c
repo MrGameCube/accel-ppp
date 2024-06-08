@@ -1226,19 +1226,6 @@ static void pppoe_recv_PADR(struct pppoe_serv_t *serv, uint8_t *pack, int size)
 		return;
 	}
 
-	#ifndef DISABLE_PADR_FLOOD_PROTECTION
-	pthread_mutex_lock(&serv->lock);
-	conn = find_channel(serv, (uint8_t *)ac_cookie_tag->tag_data);
-	if (conn && !conn->ppp.ses.username) {
-		__sync_add_and_fetch(&stat_PADR_dup_recv, 1);
-		pppoe_send_PADS(conn);
-	}
-	pthread_mutex_unlock(&serv->lock);
-
-	if (conn)
-		return;
-	#endif
-
 	conn = allocate_channel(serv, ethhdr->h_source, host_uniq_tag, relay_sid_tag, service_name_tag, tr101_tag, (uint8_t *)ac_cookie_tag->tag_data, ppp_max_payload);
 	if (!conn)
 		pppoe_send_err(serv, ethhdr->h_source, host_uniq_tag, relay_sid_tag, CODE_PADS, TAG_AC_SYSTEM_ERROR);
